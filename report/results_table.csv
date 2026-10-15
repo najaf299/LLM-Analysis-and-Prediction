@@ -1,0 +1,5 @@
+Model Architecture,5-Fold CV Mean,5-Fold CV Std,Test Accuracy,Precision,Recall,F1-Score,ROC-AUC
+Logistic Regression,99.36%,0.27%,99.36%,99.18%,99.18%,99.18%,0.9996
+Multinomial Naive Bayes,98.49%,0.42%,98.07%,96.19%,98.97%,97.56%,0.9989
+Random Forest,99.26%,0.19%,99.36%,99.18%,99.18%,99.18%,0.9988
+Linear SVM,99.50%,0.14%,99.60%,99.38%,99.59%,99.49%,0.9999
