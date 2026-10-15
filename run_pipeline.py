@@ -123,12 +123,13 @@ plt.close(fig)
 
 # Fig 2: Word Count Distribution (Histogram & KDE)
 fig, ax = plt.subplots(figsize=(7, 4.2))
-sns.histplot(data=combined_df, x='word_count', hue='generated', palette=['#2b6cb0', '#e53e3e'],
+plot_df = combined_df.copy()
+plot_df['Origin'] = plot_df['generated'].map({0: 'Human-Written', 1: 'AI-Generated'})
+sns.histplot(data=plot_df, x='word_count', hue='Origin', palette={'Human-Written': '#2b6cb0', 'AI-Generated': '#e53e3e'},
              kde=True, bins=40, alpha=0.45, ax=ax, element='step')
 ax.set_title('Essay Word Count Distribution by Origin', fontsize=12, fontweight='bold', pad=12)
 ax.set_xlabel('Word Count', fontsize=10)
 ax.set_ylabel('Essay Frequency', fontsize=10)
-ax.legend(title='Origin', labels=['AI-Generated', 'Human-Written'], frameon=True)
 plt.tight_layout()
 fig.savefig(os.path.join(FIG_DIR, "02_word_count_distribution.png"), dpi=300)
 plt.close(fig)
@@ -265,6 +266,30 @@ for name, model in models.items():
     }
     print(f"    Test Acc: {acc:.4f} | F1: {f1:.4f} | ROC-AUC: {auc:.4f} | 5-Fold CV Acc: {cv_scores.mean():.4f} +/- {cv_scores.std():.4f}")
 
+# Word-Count-Only Baseline Model
+print("  Evaluating Word-Count-Only Baseline Model...")
+from sklearn.preprocessing import StandardScaler
+scaler_len = StandardScaler()
+X_train_wc = scaler_len.fit_transform(pd.DataFrame({'word_count': combined_df.loc[X_train_raw.index, 'word_count']}))
+X_test_wc = scaler_len.transform(pd.DataFrame({'word_count': combined_df.loc[X_test_raw.index, 'word_count']}))
+
+lr_wc = LogisticRegression(random_state=42)
+cv_wc_scores = cross_val_score(lr_wc, X_train_wc, y_train, cv=cv, scoring='accuracy', n_jobs=-1)
+lr_wc.fit(X_train_wc, y_train)
+y_pred_wc = lr_wc.predict(X_test_wc)
+y_prob_wc = lr_wc.predict_proba(X_test_wc)[:, 1]
+
+wc_baseline = {
+    'cv_mean': float(cv_wc_scores.mean()),
+    'cv_std': float(cv_wc_scores.std()),
+    'accuracy': float(accuracy_score(y_test, y_pred_wc)),
+    'precision': float(precision_score(y_test, y_pred_wc)),
+    'recall': float(recall_score(y_test, y_pred_wc)),
+    'f1': float(f1_score(y_test, y_pred_wc)),
+    'roc_auc': float(roc_auc_score(y_test, y_prob_wc))
+}
+print(f"    Baseline Acc: {wc_baseline['accuracy']:.4f} | F1: {wc_baseline['f1']:.4f} | ROC-AUC: {wc_baseline['roc_auc']:.4f} | 5-Fold CV Acc: {wc_baseline['cv_mean']:.4f} +/- {wc_baseline['cv_std']:.4f}")
+
 # -------------------------------------------------------------
 # 5. Results Evaluation & Plots
 # -------------------------------------------------------------
@@ -331,14 +356,16 @@ lr_model = results['Logistic Regression']['model']
 feature_names = np.array(tfidf.get_feature_names_out())
 coefs = lr_model.coef_[0]
 
+# For AI: positive coefficients. Top 12 features sorted so largest is at the top of horizontal bar
 top_ai_idx = np.argsort(coefs)[-12:]
-top_human_idx = np.argsort(coefs)[:12]
+# For Human: negative coefficients. Top 12 features sorted by absolute magnitude so largest is at top
+top_human_idx = np.argsort(coefs)[:12][::-1]
 
 fig, axes = plt.subplots(1, 2, figsize=(11, 5))
 
 axes[0].barh(feature_names[top_human_idx], np.abs(coefs[top_human_idx]), color='#2b6cb0', edgecolor='black', linewidth=0.5)
 axes[0].set_title('Top Features Predictive of Human-Written Text', fontsize=10.5, fontweight='bold')
-axes[0].set_xlabel('Absolute Weight magnitude', fontsize=9.5)
+axes[0].set_xlabel('Absolute Weight Magnitude (|Coefficient|)', fontsize=9.5)
 
 axes[1].barh(feature_names[top_ai_idx], coefs[top_ai_idx], color='#e53e3e', edgecolor='black', linewidth=0.5)
 axes[1].set_title('Top Features Predictive of AI-Generated Text', fontsize=10.5, fontweight='bold')
@@ -382,6 +409,8 @@ for name, res in results.items():
         "f1": res["f1"],
         "roc_auc": res["roc_auc"]
     }
+
+report_metrics["word_count_baseline"] = wc_baseline
 
 metrics_json_path = os.path.join(REP_DIR, "metrics.json")
 with open(metrics_json_path, 'w') as f:

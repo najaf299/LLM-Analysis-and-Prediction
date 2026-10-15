@@ -1,7 +1,20 @@
 #!/usr/bin/env python3
 """
-Generate a professional 5-page IEEE-style Project Report PDF
+Generate a professional 4-page IEEE-style Project Report PDF
 for IAI600 Group 21: LLM Analysis and Prediction.
+
+Incorporates all peer/instructor feedback:
+- Corrected Fig. 6 feature description to match actual top N-grams from Logistic Regression
+- Corrected evaluation claims (Naive Bayes precision 96.19%, no false >98% claim)
+- Replaced 'hyperparameter validation' with 5-fold stratified cross-validation description
+- Removed overclaims ('we proved', 'state-of-the-art', 'extraordinary')
+- Accurate dataset description (ChatGPT external dataset, 6,220 total records, zero duplicate rows)
+- Added dedicated Limitations subsection addressing document length disparity and source confounding
+- Included Word-Count-Only Baseline (88.10% accuracy, ROC-AUC: 0.9456) in Table II and discussion
+- Accurate AI tool acknowledgment (Google Gemini via Antigravity IDE, ChatGPT)
+- Fixed Reference [2] to Liang et al. (2023) for non-native English speaker bias
+- Complete numerical in-text citations for all references [1] through [8]
+- Clean configurable authors list
 """
 
 import os
@@ -30,6 +43,19 @@ b64_roc = img_b64("07_roc_curves.png")
 b64_bar = img_b64("08_model_comparison_bar.png")
 b64_feat = img_b64("09_feature_importance.png")
 
+# Configurable Author Information
+AUTHORS = [
+    {"name": "Najaf Ali Akbar", "affiliation": "Masters in AI &amp; Automation<br>Group 21 Contributor"},
+    {"name": "Student Author 2", "affiliation": "Masters in AI &amp; Automation<br>Group 21 Contributor"},
+    {"name": "Student Author 3", "affiliation": "Masters in AI &amp; Automation<br>Group 21 Contributor"},
+    {"name": "Student Author 4", "affiliation": "Masters in AI &amp; Automation<br>Group 21 Contributor"},
+]
+
+authors_cells = "".join([
+    f'<td><div class="author-name">{a["name"]}</div><div class="author-affiliation">{a["affiliation"]}</div></td>'
+    for a in AUTHORS
+])
+
 template = """<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -38,7 +64,7 @@ template = """<!DOCTYPE html>
 <style>
 @page {
     size: A4;
-    margin: 1.6cm 1.5cm 1.6cm 1.5cm;
+    margin: 1.5cm 1.4cm 1.5cm 1.4cm;
     @bottom-center {
         content: "Page " counter(page) " of " counter(pages);
         font-size: 8.5pt;
@@ -49,8 +75,8 @@ template = """<!DOCTYPE html>
 
 body {
     font-family: 'Times New Roman', Times, serif;
-    font-size: 9.1pt;
-    line-height: 1.33;
+    font-size: 9.0pt;
+    line-height: 1.30;
     color: #111;
     text-align: justify;
     margin: 0;
@@ -60,84 +86,84 @@ body {
 /* Header Banner - Spans all columns */
 .header-box {
     text-align: center;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     border-bottom: 0.8pt solid #333;
-    padding-bottom: 8px;
+    padding-bottom: 6px;
 }
 
 .course-title {
-    font-size: 8pt;
+    font-size: 7.8pt;
     text-transform: uppercase;
-    letter-spacing: 1.2px;
+    letter-spacing: 1.1px;
     color: #444;
     font-weight: bold;
-    margin-bottom: 4px;
+    margin-bottom: 3px;
 }
 
 h1.paper-title {
-    font-size: 16pt;
+    font-size: 15pt;
     font-weight: bold;
     line-height: 1.2;
-    margin: 4px 0 8px 0;
+    margin: 3px 0 6px 0;
     color: #000;
 }
 
 .authors-table {
     width: 100%;
-    margin: 0 auto 4px auto;
-    font-size: 8.5pt;
+    margin: 0 auto 3px auto;
+    font-size: 8.3pt;
     text-align: center;
 }
 
 .authors-table td {
-    padding: 2px 8px;
+    padding: 2px 6px;
     vertical-align: top;
 }
 
 .author-name {
     font-weight: bold;
-    font-size: 8.8pt;
+    font-size: 8.6pt;
 }
 
 .author-affiliation {
-    font-size: 7.6pt;
+    font-size: 7.4pt;
     color: #444;
-    line-height: 1.2;
+    line-height: 1.18;
 }
 
 /* Two Column Layout */
 .two-column {
     column-count: 2;
-    column-gap: 0.55cm;
+    column-gap: 0.52cm;
     column-fill: balance;
 }
 
 /* Headings */
 h2.section-heading {
-    font-size: 9.6pt;
+    font-size: 9.4pt;
     font-weight: bold;
     text-transform: uppercase;
     text-align: center;
-    margin: 9pt 0 4pt 0;
-    letter-spacing: 0.8px;
+    margin: 8pt 0 3.5pt 0;
+    letter-spacing: 0.7px;
     page-break-after: avoid;
     break-after: avoid;
 }
 
 h3.subsection-heading {
-    font-size: 8.8pt;
+    font-size: 8.6pt;
     font-weight: bold;
     font-style: italic;
-    margin: 5pt 0 2pt 0;
+    margin: 4.5pt 0 1.5pt 0;
     page-break-after: avoid;
     break-after: avoid;
 }
 
 /* Abstract Box */
 .abstract-box {
-    margin-bottom: 7pt;
-    font-size: 8.6pt;
-    line-height: 1.28;
+    margin-bottom: 6pt;
+    font-size: 8.5pt;
+    line-height: 1.26;
 }
 
 .abstract-title {
@@ -147,8 +173,8 @@ h3.subsection-heading {
 }
 
 .keywords {
-    margin-top: 3pt;
-    font-size: 8.3pt;
+    margin-top: 2.5pt;
+    font-size: 8.2pt;
     font-style: italic;
 }
 
@@ -160,7 +186,7 @@ h3.subsection-heading {
 
 /* Paragraphs */
 p {
-    margin: 0 0 4.5pt 0;
+    margin: 0 0 4pt 0;
     text-indent: 1.2em;
 }
 
@@ -170,7 +196,7 @@ p.no-indent {
 
 /* Figures and Tables */
 .figure-container {
-    margin: 6pt 0;
+    margin: 5pt 0;
     text-align: center;
     page-break-inside: avoid;
     break-inside: avoid;
@@ -184,9 +210,9 @@ p.no-indent {
 }
 
 .caption {
-    font-size: 7.6pt;
-    margin-top: 2.5pt;
-    line-height: 1.2;
+    font-size: 7.5pt;
+    margin-top: 2pt;
+    line-height: 1.18;
     text-align: justify;
     color: #222;
 }
@@ -199,8 +225,8 @@ p.no-indent {
 table.data-table {
     width: 100%;
     border-collapse: collapse;
-    margin: 5pt 0;
-    font-size: 7.6pt;
+    margin: 4.5pt 0;
+    font-size: 7.4pt;
     page-break-inside: avoid;
     break-inside: avoid;
 }
@@ -208,7 +234,7 @@ table.data-table {
 table.data-table th, table.data-table td {
     border-top: 0.5pt solid #444;
     border-bottom: 0.5pt solid #444;
-    padding: 2.5pt 2pt;
+    padding: 2.2pt 1.8pt;
     text-align: center;
 }
 
@@ -223,11 +249,11 @@ table.data-table tr.highlight {
 }
 
 .table-caption {
-    font-size: 7.8pt;
+    font-size: 7.6pt;
     font-weight: bold;
     text-align: center;
     text-transform: uppercase;
-    margin-bottom: 2pt;
+    margin-bottom: 1.8pt;
     letter-spacing: 0.5px;
 }
 
@@ -235,23 +261,23 @@ table.data-table tr.highlight {
 .equation-box {
     background: #fbfbfb;
     border-left: 2pt solid #4a5568;
-    padding: 2.5pt 6pt;
-    margin: 4pt 0;
-    font-size: 8pt;
+    padding: 2pt 5pt;
+    margin: 3.5pt 0;
+    font-size: 7.8pt;
     font-family: 'Courier New', monospace;
 }
 
 /* References */
 .references-list {
-    font-size: 7.6pt;
-    line-height: 1.22;
-    padding-left: 1.4em;
-    margin-top: 3pt;
+    font-size: 7.4pt;
+    line-height: 1.20;
+    padding-left: 1.3em;
+    margin-top: 2.5pt;
 }
 
 .references-list li {
-    margin-bottom: 3pt;
-    text-indent: -1.4em;
+    margin-bottom: 2.5pt;
+    text-indent: -1.3em;
     padding-left: 0.2em;
 }
 </style>
@@ -263,22 +289,7 @@ table.data-table tr.highlight {
     <h1 class="paper-title">LLM Analysis and Prediction: Supervised Classification of Machine-Generated vs. Human-Authored Essays</h1>
     <table class="authors-table">
         <tr>
-            <td>
-                <div class="author-name">Najaf Ali Akbar</div>
-                <div class="author-affiliation">Masters in AI &amp; Automation <br>Group 21 Contributor</div>
-            </td>
-            <td>
-                <div class="author-name">Student Author 2</div>
-                <div class="author-affiliation">Masters in AI &amp; Automation <br>Group 21 Contributor</div>
-            </td>
-            <td>
-                <div class="author-name">Student Author 3</div>
-                <div class="author-affiliation">Masters in AI &amp; Automation <br>Group 21 Contributor</div>
-            </td>
-            <td>
-                <div class="author-name">Student Author 4</div>
-                <div class="author-affiliation">Masters in AI &amp; Automation <br>Group 21 Contributor</div>
-            </td>
+            __AUTHORS_CELLS__
         </tr>
     </table>
 </div>
@@ -287,21 +298,22 @@ table.data-table tr.highlight {
 
 <div class="abstract-box">
     <div class="abstract-title">Abstract&mdash;</div>
-    The rapid proliferation of Large Language Models (LLMs) such as ChatGPT, Claude, and Llama has fundamentally transformed written communication while simultaneously posing unprecedented challenges to educational assessment, attribution, and academic integrity. This laboratory project addresses the critical task of binary text classification to accurately distinguish between human student essays and synthetic texts synthesized by generative language models. Utilizing the Kaggle <i>LLM &ndash; Detect AI Generated Text</i> benchmark corpus enriched with the DAIGT external dataset (totaling 6,220 balanced text samples), we design and evaluate a transparent, reproducible Natural Language Processing (NLP) pipeline strictly within the foundational scope of the course. Our methodology employs systematic lexical preprocessing, Term Frequency&ndash;Inverse Document Frequency (TF-IDF) feature engineering over unigram and bigram vocabularies (10,000 features), and four standard supervised learning algorithms: Logistic Regression, Multinomial Naive Bayes, Random Forest, and Linear Support Vector Machines (SVM). Experimental evaluation via 5-fold cross-validation and an independent stratified test partition demonstrates that linear decision boundaries achieve state-of-the-art discriminating power. Linear SVM achieved the highest classification accuracy of 99.60% (F1-score: 99.49%, ROC-AUC: 0.9999), closely followed by Logistic Regression at 99.36% (ROC-AUC: 0.9996). Our findings reveal that distinct token frequencies, syntactic uniformity, and lexical variance reliably separate algorithmic outputs from authentic student writing without requiring computationally prohibitive deep neural architectures.
+    The rapid proliferation of Large Language Models (LLMs) such as ChatGPT has fundamentally transformed written communication while posing critical challenges to educational evaluation and academic attribution. This laboratory project addresses the supervised binary classification task of distinguishing between human student essays and synthetic texts generated by language models. Utilizing the Kaggle <i>LLM &ndash; Detect AI Generated Text</i> benchmark integrated with the community DAIGT external dataset (totaling 6,220 balanced text samples), we design and evaluate a transparent, reproducible Natural Language Processing (NLP) pipeline strictly within the foundational scope of the course. Our methodology employs lexical preprocessing, sublinear Term Frequency&ndash;Inverse Document Frequency (TF-IDF) feature extraction over unigram and bigram vocabularies (10,000 features), and four standard supervised learning algorithms: Logistic Regression, Multinomial Naive Bayes, Random Forest, and Linear Support Vector Machines (SVM). Experimental evaluation via 5-fold stratified cross-validation and an independent holdout test partition (N=1,244) demonstrates that lightweight linear classifiers achieve strong discriminating performance on this benchmark. Linear SVM attained the highest classification accuracy of 99.60% (F1-score: 99.49%, ROC-AUC: 0.9999), closely followed by Logistic Regression and Random Forest at 99.36% (ROC-AUC: 0.9996 and 0.9988, respectively). Multinomial Naive Bayes attained 98.07% accuracy (precision: 96.19%, recall: 98.97%). Furthermore, a diagnostic word-count baseline (88.10% accuracy, ROC-AUC: 0.9456) highlights the influence of macro-structural document length differences between human and machine text in the corpus. Our analysis demonstrates that combining sublinear TF-IDF features with linear classification reliably separates generative text from student compositions without requiring computationally intensive deep neural networks.
     <div class="keywords"><div class="keywords-title">Keywords&mdash;</div>Large Language Models (LLMs), Text Classification, Supervised Learning, TF-IDF Vectorization, Logistic Regression, Naive Bayes, Linear SVM, Academic Integrity.</div>
 </div>
 
 <h2 class="section-heading">I. Introduction</h2>
-<p class="no-indent">The democratization of state-of-the-art autoregressive Large Language Models (LLMs) has marked a transformative milestone in Artificial Intelligence. Modern foundational architectures, built primarily upon the multi-head self-attention Transformer framework, exhibit human-level proficiency across creative writing, analytical exposition, and technical argumentation [1]. However, this unprecedented fluency introduces profound systemic concerns regarding attribution, plagiarism, and the veracity of student coursework across secondary and higher education institutions.</p>
+<p class="no-indent">The democratization of autoregressive Large Language Models (LLMs) has marked a transformative milestone in Artificial Intelligence. Modern foundational architectures, built primarily upon the multi-head self-attention Transformer framework [1], exhibit human-level proficiency across creative writing, analytical exposition, and persuasive argumentation. However, this fluency introduces systemic concerns regarding attribution, plagiarism, and the veracity of student coursework across secondary and higher education institutions.</p>
 
 <p>When students submit AI-generated responses under the guise of authentic personal intellect, educational evaluation frameworks are compromised. Consequently, robust, computationally accessible, and explainable methodologies capable of distinguishing between student-authored essays and algorithmic generations are urgent necessities. While commercial closed-source detectors often operate as inscrutable "black boxes" exhibiting unpredictable false-positive rates on non-native English speakers [2], foundational machine learning methods rooted in statistical natural language processing offer interpretable, lightweight, and deployable alternatives.</p>
 
 <p>The primary motivation of this project is to investigate whether lightweight, transparent machine learning algorithms&mdash;as taught within the laboratory curriculum of the IAI600 course&mdash;can reliably detect machine-generated essays. In strict accordance with the pedagogical guidelines of this course, we intentionally eschew heavy deep neural networks (e.g., fine-tuned BERT or DeBERTa architectures) in favor of foundational linear and probabilistic models. Specifically, we evaluate Logistic Regression, Multinomial Naive Bayes, Random Forest, and Linear Support Vector Machines over a rigorous Term Frequency&ndash;Inverse Document Frequency (TF-IDF) vector space.</p>
 
-<p>The key contributions of this report are threefold:
-(i) We construct a balanced, curated benchmark corpus (6,220 essays) mitigating the severe single-class bias of the raw Kaggle competition training set;
-(ii) We perform extensive Exploratory Data Analysis (EDA) uncovering key quantitative stylistic contrasts (sentence length, word length, lexical repetition) between students and LLMs; and
-(iii) We deliver a rigorous empirical comparison across multiple evaluation metrics (Accuracy, Precision, Recall, F1-Score, ROC-AUC) validated via 5-fold stratified cross-validation.</p>
+<p>The key contributions of this report are fourfold:
+(i) We construct a balanced benchmark corpus (6,220 essays) integrating the raw Kaggle competition data and external paired essays;
+(ii) We perform Exploratory Data Analysis (EDA) uncovering key quantitative stylistic contrasts (sentence length, word length, lexical repetition) between human students and synthetic text;
+(iii) We implement a univariate length baseline to explicitly quantify structural dataset confounding; and
+(iv) We deliver an empirical comparison across multiple evaluation metrics (Accuracy, Precision, Recall, F1-Score, ROC-AUC) validated via 5-fold stratified cross-validation.</p>
 
 <h2 class="section-heading">II. Methodology</h2>
 
@@ -318,10 +330,10 @@ y_i = 1 &rArr; LLM-generated synthetic text
 
 <div class="figure-container">
     <img src="__B64_DIST__" alt="Class Distribution">
-    <div class="caption"><span class="caption-title">Fig. 1.</span> Target class distribution across the unified experimental corpus following integration of the Kaggle competition data and the DAIGT external paired generation corpus (N=6,220).</div>
+    <div class="caption"><span class="caption-title">Fig. 1.</span> Target class distribution across the unified experimental corpus following integration of the Kaggle competition data and the DAIGT external dataset (N=6,220).</div>
 </div>
 
-<p>To establish a statistically viable supervised learning benchmark, we incorporated the community-curated DAIGT V2 external dataset (daigt_external_dataset.csv) [4]. This corpus contains authentic persuasive student essays alongside paired generations elicited from contemporary LLMs (GPT-3.5, Claude, PaLM) guided by identical prompt parameters. Following deduplication and filtering of degenerate strings shorter than 50 characters, we obtained a robust benchmark of 6,220 essays: 3,796 human-written (61.0%) and 2,424 AI-generated (39.0%), as shown in Fig. 1.</p>
+<p>To establish a statistically viable supervised learning benchmark, we incorporated the community-curated DAIGT external dataset (daigt_external_dataset.csv) [4]. This corpus contains authentic persuasive student essays alongside paired generations elicited from ChatGPT guided by corresponding prompt instructions. Aggregating the 1,378 competition essays (1,375 human, 3 AI) with the 2,421 external student essays and 2,421 ChatGPT generations yielded exactly 6,220 essays: 3,796 human-written (61.0%) and 2,424 AI-generated (39.0%), as shown in Fig. 1. All records satisfied the minimum length threshold (>50 characters), and merging produced zero redundant text entries (1,378 + 2,421 + 2,421 = 6,220 distinct records).</p>
 
 <h3 class="subsection-heading">C. Exploratory Data Analysis (EDA)</h3>
 <p class="no-indent">Prior to vectorization, we conducted statistical text profiling to examine intrinsic linguistic differences between human students and language models. Table I summarizes key stylistic metrics.</p>
@@ -370,11 +382,11 @@ y_i = 1 &rArr; LLM-generated synthetic text
     </tbody>
 </table>
 
-<p>As visualized in the density distributions of Fig. 2, student essays exhibit higher variance and significantly greater overall length (averaging ~478 words) compared to prompt-constrained synthetic responses (averaging ~202 words). Conversely, AI generations exhibit higher average word length (6.20 vs. 5.56 characters), reflecting an inclination toward formal, polysyllabic vocabulary (e.g., <i>"furthermore"</i>, <i>"consequently"</i>, <i>"implementation"</i>).</p>
+<p>As visualized in the density distributions of Fig. 2, student essays exhibit higher variance and significantly greater overall length (averaging ~478 words) compared to prompt-constrained synthetic responses (averaging ~202 words). Conversely, AI generations exhibit higher average word length (6.20 vs. 5.56 characters), reflecting an inclination toward formal, polysyllabic vocabulary.</p>
 
 <div class="figure-container">
     <img src="__B64_WC__" alt="Word Count Distribution">
-    <div class="caption"><span class="caption-title">Fig. 2.</span> Kernel Density Estimation (KDE) and frequency histograms contrasting essay word count distributions between human students and synthetic LLM generations.</div>
+    <div class="caption"><span class="caption-title">Fig. 2.</span> Kernel Density Estimation (KDE) and frequency histograms contrasting essay word count distributions between human students (blue) and synthetic generations (red).</div>
 </div>
 
 <h3 class="subsection-heading">D. Text Preprocessing Pipeline</h3>
@@ -385,37 +397,39 @@ y_i = 1 &rArr; LLM-generated synthetic text
 4) <i>Whitespace Compression:</i> Collapsing consecutive whitespace into single spaces and trimming boundary tabs/newlines.</p>
 
 <h3 class="subsection-heading">E. Feature Engineering: TF-IDF Vectorization</h3>
-<p class="no-indent">Machine learning classifiers cannot directly ingest raw character sequences. We employ Term Frequency&ndash;Inverse Document Frequency (TF-IDF) vectorization, which quantifies the relative importance of n-gram tokens across the corpus. The mathematical weight for term t in essay d across corpus D is computed as:</p>
+<p class="no-indent">Machine learning classifiers cannot directly ingest raw character sequences. We employ Term Frequency&ndash;Inverse Document Frequency (TF-IDF) vectorization implemented via scikit-learn [5], which quantifies the relative importance of n-gram tokens across the corpus. The mathematical weight for term t in essay d across corpus D is computed as:</p>
 <div class="equation-box">
 TF-IDF(t, d, D) = TF(t, d) &times; [ln((1 + |D|) / (1 + |{d' in D : t in d'}|)) + 1]
 </div>
 <p>To reduce sensitivity to outlier essay lengths, we applied sublinear term-frequency scaling (TF_sub = 1 + ln(TF) for TF > 0). To capture both isolated keywords and idiomatic two-word transitions (such as <i>"in conclusion"</i> or <i>"on hand"</i>), we configured an n-gram range of (1, 2). We restricted the vocabulary to the top 10,000 most informative features, filtering out rare tokens occurring in fewer than 3 documents and eliminating standard English stopwords. This yielded a high-dimensional sparse matrix of 6,220 essays by 10,000 features.</p>
 
 <h3 class="subsection-heading">F. Machine Learning Models</h3>
-<p class="no-indent">Within the pedagogical scope of IAI600, we selected four foundational classifiers representing distinct learning paradigms:</p>
+<p class="no-indent">Within the pedagogical scope of IAI600, we selected four foundational classifiers representing distinct learning paradigms, alongside a heuristic diagnostic baseline:</p>
 
 <p><b>1) Logistic Regression:</b> A linear model modeling log-odds via the sigmoid link function. We utilize L2 Tikhonov regularization (C=1.0) with the L-BFGS numerical solver to prevent overfitting across the 10,000-dimensional sparse feature space.</p>
 
 <p><b>2) Multinomial Naive Bayes:</b> A probabilistic generative model that assumes conditional independence of tokens given the class label. Likelihoods are parameterized via categorical distributions with Laplace additive smoothing (&alpha;=0.1).</p>
 
-<p><b>3) Random Forest:</b> A non-parametric ensemble method constructing 100 decorrelated decision trees trained on bootstrap sub-samples of the dataset with randomized feature subsets at each split. We constrain maximum tree depth to 30 to restrict model variance.</p>
+<p><b>3) Random Forest:</b> A non-parametric ensemble method constructing 100 decorrelated decision trees trained on bootstrap sub-samples of the dataset with randomized feature subsets at each split [7]. We constrain maximum tree depth to 30 to restrict model variance.</p>
 
-<p><b>4) Linear Support Vector Machine (LinearSVM):</b> A maximal margin classifier that solves the primal convex optimization problem to find a hyper-plane maximizing the geometric separation between classes. We calibrate decision margins into posterior probabilities using 3-fold Platt scaling via CalibratedClassifierCV.</p>
+<p><b>4) Linear Support Vector Machine (Linear SVM):</b> A maximal margin classifier that solves the primal convex optimization problem to find a hyper-plane maximizing the geometric separation between classes [6]. We calibrate decision margins into posterior probabilities using 3-fold Platt scaling via CalibratedClassifierCV.</p>
+
+<p><b>5) Word-Count-Only Baseline:</b> To isolate the predictive signal of document length from lexical content, we train a univariate Logistic Regression model solely on standardized essay word count.</p>
 
 <h2 class="section-heading">III. Experimental Setup</h2>
 
 <h3 class="subsection-heading">A. Hardware & Software Environment</h3>
-<p class="no-indent">All experiments were executed on macOS (Darwin x86_64) using Python 3.14 within a Miniforge conda environment. Core scientific libraries included scikit-learn (v1.9.1) for machine learning estimators, cross-validation, and metrics; pandas (v3.0.6) and numpy (v2.5.4) for high-performance matrix manipulations; and matplotlib (v3.11.2) and seaborn (v0.13.2) for statistical graphic rendering.</p>
+<p class="no-indent">All experiments were executed on macOS (Darwin x86_64) using Python 3.14 within a Miniforge conda environment. Core scientific libraries included scikit-learn [5] (v1.9.1) for machine learning estimators, cross-validation, and metrics; pandas (v3.0.6) and numpy (v2.5.4) for matrix manipulations; and matplotlib (v3.11.2) and seaborn (v0.13.2) for statistical graphics. All pipeline scripts, notebooks, figures, and data utilities are version-controlled in the project repository [8].</p>
 
 <h3 class="subsection-heading">B. Cross-Validation and Evaluation Protocol</h3>
 <p class="no-indent">To ensure methodological rigor and preclude data snooping, the corpus was partitioned into an 80% training set (4,976 essays) and a dedicated 20% holdout test set (1,244 essays) using stratified sampling (random_state=42), preserving class ratios identically across partitions. The TF-IDF vectorizer was fit exclusively on the training partition and transformed onto the test partition.</p>
 
-<p>To verify generalization stability and guard against sampling artifacts, hyperparameter validation was conducted using 5-fold Stratified Cross-Validation on the training partition. Final performance was measured on the untouched 1,244-essay test set across five standardized metrics: Accuracy, Precision, Recall, F1-Score, and Area Under the ROC Curve (ROC-AUC).</p>
+<p>To assess generalization stability and measure variance across subsets, 5-fold Stratified Cross-Validation was conducted across the 4,976 training instances (random_state=42). Model parameters were held constant across folds according to baseline standard defaults rather than tuned via exhaustive grid search. Final out-of-sample performance was then evaluated on the untouched 1,244-essay test partition across five standard metrics: Accuracy, Precision, Recall, F1-Score, and Area Under the ROC Curve (ROC-AUC).</p>
 
 <h2 class="section-heading">IV. Results and Discussion</h2>
 
 <h3 class="subsection-heading">A. Overall Model Performance</h3>
-<p class="no-indent">Quantitative performance across all four candidate classifiers on the independent 1,244-essay test partition is compiled in Table II.</p>
+<p class="no-indent">Quantitative performance across all four candidate classifiers and the word-count baseline on the independent 1,244-essay test partition is compiled in Table II.</p>
 
 <div class="table-caption">TABLE II: Final Benchmark Evaluation on Unseen Test Partition (N=1,244)</div>
 <table class="data-table">
@@ -467,30 +481,39 @@ TF-IDF(t, d, D) = TF(t, d) &times; [ln((1 + |D|) / (1 + |{d' in D : t in d'}|)) 
             <td>97.56%</td>
             <td>0.9989</td>
         </tr>
+        <tr style="color: #555; font-style: italic;">
+            <td>Word-Count Baseline (Length)</td>
+            <td>86.86 &plusmn; 1.16%</td>
+            <td>88.10%</td>
+            <td>83.50%</td>
+            <td>86.60%</td>
+            <td>85.02%</td>
+            <td>0.9456</td>
+        </tr>
     </tbody>
 </table>
 
-<p>As demonstrated in Table II and visual comparison in Fig. 3, all four machine learning architectures achieved extraordinary classification performance, exceeding 98.0% across all evaluated metrics. <b>Linear SVM emerged as the top-performing model</b>, reaching 99.60% test accuracy, 99.49% F1-score, and a near-ideal ROC-AUC of 0.9999, supported by a 5-fold cross-validation accuracy of 99.50% &plusmn; 0.14%.</p>
+<p>As summarized in Table II and visual comparison in Fig. 3, all four TF-IDF machine learning architectures demonstrated strong classification performance. <b>Linear SVM emerged as the top-performing model</b>, reaching 99.60% test accuracy, 99.49% F1-score, and an ROC-AUC of 0.9999, supported by a 5-fold cross-validation accuracy of 99.50% &plusmn; 0.14%.</p>
 
 <div class="figure-container">
     <img src="__B64_BAR__" alt="Model Comparison Bar Chart">
     <div class="caption"><span class="caption-title">Fig. 3.</span> Comparative performance across Accuracy, Precision, Recall, F1-Score, and ROC-AUC for the four evaluated classifiers.</div>
 </div>
 
-<p>Logistic Regression and Random Forest matched closely in second position, each posting 99.36% test accuracy and 99.18% F1-score. Multinomial Naive Bayes, while slightly trailing with 98.07% accuracy, demonstrated strong recall (98.97%), confirming that simple word-probability models can effectively capture generative signatures.</p>
+<p>Logistic Regression and Random Forest matched closely in second position, each posting 99.36% test accuracy and 99.18% F1-score. Multinomial Naive Bayes achieved 98.07% accuracy, with strong recall (98.97%) and a precision of 96.19%. Crucially, the univariate word-count baseline achieved 88.10% test accuracy (ROC-AUC: 0.9456), showing that while macro-structural length differences provide substantial initial separability, TF-IDF lexical features provide the vital refinement necessary to reach >99% accuracy.</p>
 
 <h3 class="subsection-heading">B. Error Analysis via Confusion Matrices</h3>
-<p class="no-indent">Fig. 4 details the confusion matrices on the 1,244 unseen test essays (759 human, 485 AI). For Linear SVM, out of 1,244 test instances, exactly 756 of 759 human essays were correctly identified (only 3 false alarms, FP rate = 0.39%), while 483 of 485 AI essays were successfully flagged (only 2 false dismissals, FN rate = 0.41%).</p>
+<p class="no-indent">Fig. 4 details the confusion matrices on the 1,244 unseen test essays (759 human, 485 AI). For Linear SVM, out of 1,244 test instances, exactly 756 of 759 human essays were correctly identified (3 false alarms, FP rate = 0.39%), while 483 of 485 AI essays were successfully flagged (2 false dismissals, FN rate = 0.41%).</p>
 
 <div class="figure-container">
     <img src="__B64_CM__" alt="Confusion Matrices">
     <div class="caption"><span class="caption-title">Fig. 4.</span> Confusion matrices on the 1,244-essay test partition. All models maintain false positive rates below 2.5%, critical for fair educational screening.</div>
 </div>
 
-<p>In the context of educational integrity, the False Positive rate (accusing an innocent student of AI generation) is substantially more damaging than a False Negative. Both Linear SVM and Logistic Regression restricted false positive errors to &le; 0.53%, making them highly dependable candidate screening tools.</p>
+<p>In educational integrity applications, the False Positive rate (accusing an innocent student of AI generation) is substantially more damaging than a False Negative. Both Linear SVM and Logistic Regression restricted false positive errors to &le; 0.53%, making them dependable screening candidates.</p>
 
 <h3 class="subsection-heading">C. ROC-AUC and Discriminative Separation</h3>
-<p class="no-indent">The Receiver Operating Characteristic (ROC) curves illustrated in Fig. 5 highlight the remarkable separability enabled by TF-IDF n-grams. All four models hug the upper-left coordinate corner, with AUC scores between 0.9988 and 0.9999. This confirms that the models maintain near-perfect discrimination across all operating classification thresholds, rather than relying arbitrarily on the default 0.5 probability cutoff.</p>
+<p class="no-indent">The Receiver Operating Characteristic (ROC) curves in Fig. 5 illustrate strong separability enabled by TF-IDF n-grams. All four models hug the upper-left coordinate corner, with AUC scores between 0.9988 and 0.9999, demonstrating robust discrimination across classification probability thresholds.</p>
 
 <div class="figure-container">
     <img src="__B64_ROC__" alt="ROC Curves">
@@ -498,7 +521,7 @@ TF-IDF(t, d, D) = TF(t, d) &times; [ln((1 + |D|) / (1 + |{d' in D : t in d'}|)) 
 </div>
 
 <h3 class="subsection-heading">D. Interpretability & Feature Importance</h3>
-<p class="no-indent">To understand <i>why</i> the linear models succeed with such exceptional accuracy, we examined the highest-magnitude coefficients from the Logistic Regression decision boundary. Fig. 6 displays the top 12 n-grams predictive of human writing versus AI generation.</p>
+<p class="no-indent">To understand the learned decision boundaries, we examined the highest-magnitude coefficients from the Logistic Regression model. Fig. 6 displays the top 12 n-grams predictive of human writing versus AI generation.</p>
 
 <div class="figure-container">
     <img src="__B64_FEAT__" alt="Feature Importance">
@@ -506,24 +529,25 @@ TF-IDF(t, d, D) = TF(t, d) &times; [ln((1 + |D|) / (1 + |{d' in D : t in d'}|)) 
 </div>
 
 <p>The feature weights reveal clear stylistic indicators:
-(i) Human essays are strongly weighted by authentic conversational phrasing, informal transitions, personal pronouns, and prompt-specific nouns (e.g., <i>"cars"</i>, <i>"people"</i>, <i>"students"</i>, <i>"think"</i>, <i>"school"</i>).
-(ii) AI generations are uniquely characterized by academic discourse markers, formal connective adverbs, and balanced exposition vocabulary (e.g., <i>"however"</i>, <i>"furthermore"</i>, <i>"addition"</i>, <i>"crucial"</i>, <i>"conclusion"</i>, <i>"potential"</i>).
-Language models consistently exhibit an urge toward structured rhetoric and hedging that differs measurably from spontaneous human student syntax.</p>
+(i) Features most strongly predictive of human student essays consist of conversational verbs, informal qualifiers, and subjective epistemic expressions: <i>'want'</i>, <i>'good'</i>, <i>'like'</i>, <i>'people'</i>, <i>'think'</i>, <i>'know'</i>, <i>'don'</i>, <i>'thing'</i>, <i>'things'</i>, <i>'lot'</i>, <i>'just'</i>, and <i>'reason'</i>.
+(ii) Features most strongly predictive of AI-generated text reflect abstract expository vocabulary, connective adverbs, and formal nouns: <i>'potential'</i>, <i>'provide'</i>, <i>'ultimately'</i>, <i>'additionally'</i>, <i>'essential'</i>, <i>'difficult'</i>, <i>'understanding'</i>, <i>'relationships'</i>, <i>'activities'</i>, <i>'lead'</i>, <i>'hand'</i>, and <i>'skills'</i>.
+Notably, transition words such as <i>'however'</i> or <i>'furthermore'</i> do not appear as active features because English stopwords were eliminated during vectorization; the remaining discriminative markers reflect genuine vocabulary preferences rather than unigram stopword artifacts.</p>
 
-<h2 class="section-heading">V. Conclusion</h2>
-<p class="no-indent">In this laboratory project, we successfully formulated, implemented, and empirically evaluated a machine learning solution for detecting AI-generated text. Operating within the scope of the IAI600 curriculum, we proved that complex, opaque deep neural networks are not necessary to achieve superior detection accuracy on structured essay benchmarks.</p>
+<h2 class="section-heading">V. Conclusion &amp; Limitations</h2>
+<p class="no-indent">In this laboratory project, we formulated, implemented, and empirically evaluated a machine learning solution for detecting AI-generated text. Operating within the scope of the IAI600 curriculum, we demonstrated that foundational linear classifiers (Linear SVM and Logistic Regression) coupled with TF-IDF n-grams achieve 99.60% accuracy on this benchmark while preserving full mathematical interpretability.</p>
 
-<p>By coupling systematic text cleaning with TF-IDF unigram/bigram feature extraction, lightweight linear classifiers (Linear SVM and Logistic Regression) attained 99.60% accuracy and 0.9999 ROC-AUC on unseen data, while preserving total explainability through direct feature weight inspection. Key lessons learned include the vital role of dataset curation in resolving extreme class imbalance, the power of simple linear boundaries in high-dimensional sparse text spaces, and the stylistic fingerprints that current generative models inadvertently produce.</p>
-
-<p><b>Limitations and Future Work:</b> A notable limitation is vulnerability to deliberate obfuscation (e.g., paraphrasing, inserting deliberate typos, or adversarial prompting to mimic student writing styles). Future work could explore incorporating syntactical POS-tag distributions, perplexity metrics, and out-of-domain cross-prompt generalizability across broader academic subjects.</p>
+<p><b>Limitations &amp; Threats to Validity:</b> We identify three key limitations:
+1) <i>Macro-Structural Length Disparity:</i> Human essays average ~478 words whereas ChatGPT generations average ~202 words. As evidenced by our word-count baseline (88.10% accuracy), a substantial portion of the class separability stems from document length differences inherent in the combined dataset. While sublinear TF-IDF scaling mitigates length bias, near-perfect test metrics partially reflect this structural asymmetry.
+2) <i>Dataset Origin &amp; Prompt Confounding:</i> The human essays originate from Persuade 2.0 classroom prompts, while the AI essays were elicited via ChatGPT from specific task instructions. Consequently, classifiers may exploit corpus-specific prompt artifacts rather than invariant signatures of algorithmic writing. Cross-domain generalizability across length-matched essays and newer foundation models remains an open challenge.
+3) <i>Adversarial Evasion:</i> N-gram representations remain vulnerable to deliberate obfuscation, such as prompting models to adopt colloquial student personae, paraphrasing tools, or inserting intentional lexical errors.</p>
 
 <h2 class="section-heading">Acknowledgment</h2>
-<p class="no-indent">In accordance with university course regulations, we gratefully acknowledge the use of generative AI tools (specifically Claude and ChatGPT) as interactive learning assistants for concept clarification, debugging syntax, and LaTeX formatting. All code execution, data curation, experimental interpretations, and report authorship were conducted and verified directly by the project group members.</p>
+<p class="no-indent">In accordance with university course regulations, we acknowledge the use of generative AI tools&mdash;specifically Google Gemini (via the Antigravity IDE) and ChatGPT&mdash;as interactive learning aids for conceptual exploration, code debugging, and document styling. All experimental executions, data curation, pipeline engineering, empirical analyses, and final report conclusions were developed, verified, and authored directly by the project group members.</p>
 
 <h2 class="section-heading">References</h2>
 <ol class="references-list">
     <li>A. Vaswani <i>et al.</i>, "Attention is all you need," in <i>Advances in Neural Information Processing Systems (NeurIPS)</i>, vol. 30, pp. 5998&ndash;6008, 2017.</li>
-    <li>W. X. Zhao <i>et al.</i>, "A survey of large language models," <i>arXiv preprint arXiv:2303.18223</i>, 2023.</li>
+    <li>W. Liang, M. Yuksekgonul, Y. Mao, E. Wu, and J. Zou, "GPT detectors are biased against non-native English writers," <i>Patterns</i>, vol. 4, no. 7, p. 100779, Jul. 2023.</li>
     <li>The Learning Agency Lab, "LLM &ndash; Detect AI Generated Text," <i>Kaggle Competition Benchmark</i>, 2023. [Online]. Available: https://www.kaggle.com/competitions/llm-detect-ai-generated-text</li>
     <li>J. Dumlao, "LLM Analysis and Prediction," <i>Kaggle Community Notebook</i>, 2023. [Online]. Available: https://www.kaggle.com/code/jocelyndumlao/llm-analysis-and-prediction</li>
     <li>F. Pedregosa <i>et al.</i>, "Scikit-learn: Machine learning in Python," <i>Journal of Machine Learning Research</i>, vol. 12, pp. 2825&ndash;2830, 2011.</li>
@@ -538,7 +562,8 @@ Language models consistently exhibit an urge toward structured rhetoric and hedg
 </html>
 """
 
-html_final = template.replace("__B64_DIST__", b64_dist)
+html_final = template.replace("__AUTHORS_CELLS__", authors_cells)
+html_final = html_final.replace("__B64_DIST__", b64_dist)
 html_final = html_final.replace("__B64_WC__", b64_wc)
 html_final = html_final.replace("__B64_BAR__", b64_bar)
 html_final = html_final.replace("__B64_CM__", b64_cm)
