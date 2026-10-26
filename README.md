@@ -45,10 +45,6 @@ LLM-Analysis-and-Prediction/
 │   └── results_table.csv                   # Formatted evaluation metrics CSV
 ├── run_pipeline.py                         # End-to-end Python script to train & evaluate
 ├── generate_report_pdf.py                  # Script compiling IEEE Report to PDF
-├── generate_mastery_handbook.py            # Script compiling Project Mastery Handbook PDF
-├── generate_labs_oral_demo_guide.py        # Script compiling Labs 1, 2, 3, 5 Oral Guide PDF
-├── IAI600_Group21_Project_Mastery_Handbook.pdf
-├── IAI600_Oral_Demonstration_Master_Guide_Labs_1_2_3_5.pdf
 ├── requirements.txt                        # Project dependencies
 └── README.md                               # Project documentation
 ```
@@ -98,16 +94,9 @@ Launch Jupyter to explore or present during oral demonstrations:
 jupyter notebook notebooks/llm_analysis_and_prediction.ipynb
 ```
 
-### 4. Rebuild PDFs
+### 4. Rebuild the Report PDF
 ```bash
-# Rebuild the IEEE Report PDF
 python generate_report_pdf.py
-
-# Rebuild the Student Mastery Handbook PDF
-python generate_mastery_handbook.py
-
-# Rebuild the Labs 1, 2, 3, 5 Oral Demo Guide PDF
-python generate_labs_oral_demo_guide.py
 ```
 
 ---
