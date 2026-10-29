@@ -9,6 +9,14 @@ This repository contains the complete implementation, datasets, experimental res
 
 ---
 
+## 👥 Group 21 Members
+* **Najaf Ali Akbar**
+* **Wisam Al Baysoumi**
+* **Mujeebullah Hamid**
+* **Laiba Jadoon**
+
+---
+
 ## 🎯 Project Overview
 
 * **Objective:** Binary text classification to distinguish between human student-written essays and Large Language Model (LLM) generated essays.
