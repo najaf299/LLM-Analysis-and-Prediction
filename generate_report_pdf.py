@@ -275,6 +275,12 @@ table.data-table tr.highlight {
     margin-top: 2.5pt;
 }
 
+.references-list a {
+    color: #003366;
+    text-decoration: none;
+    word-break: break-all;
+}
+
 .references-list li {
     margin-bottom: 2.5pt;
     text-indent: -1.3em;
@@ -552,12 +558,12 @@ Notably, transition words such as <i>'however'</i> or <i>'furthermore'</i> do no
 <ol class="references-list">
     <li>A. Vaswani <i>et al.</i>, "Attention is all you need," in <i>Advances in Neural Information Processing Systems (NeurIPS)</i>, vol. 30, pp. 5998&ndash;6008, 2017.</li>
     <li>W. Liang, M. Yuksekgonul, Y. Mao, E. Wu, and J. Zou, "GPT detectors are biased against non-native English writers," <i>Patterns</i>, vol. 4, no. 7, p. 100779, Jul. 2023.</li>
-    <li>The Learning Agency Lab, "LLM &ndash; Detect AI Generated Text," <i>Kaggle Competition Benchmark</i>, 2023. [Online]. Available: https://www.kaggle.com/competitions/llm-detect-ai-generated-text</li>
-    <li>J. Dumlao, "LLM Analysis and Prediction," <i>Kaggle Community Notebook</i>, 2023. [Online]. Available: https://www.kaggle.com/code/jocelyndumlao/llm-analysis-and-prediction</li>
+    <li>The Learning Agency Lab, "LLM &ndash; Detect AI Generated Text," <i>Kaggle Competition Benchmark</i>, 2023. [Online]. Available: <a href="https://www.kaggle.com/competitions/llm-detect-ai-generated-text">https://www.kaggle.com/competitions/llm-detect-ai-generated-text</a></li>
+    <li>J. Dumlao, "LLM Analysis and Prediction," <i>Kaggle Community Notebook</i>, 2023. [Online]. Available: <a href="https://www.kaggle.com/code/jocelyndumlao/llm-analysis-and-prediction">https://www.kaggle.com/code/jocelyndumlao/llm-analysis-and-prediction</a></li>
     <li>F. Pedregosa <i>et al.</i>, "Scikit-learn: Machine learning in Python," <i>Journal of Machine Learning Research</i>, vol. 12, pp. 2825&ndash;2830, 2011.</li>
     <li>C. Cortes and V. Vapnik, "Support-vector networks," <i>Machine Learning</i>, vol. 20, no. 3, pp. 273&ndash;297, 1995.</li>
     <li>L. Breiman, "Random forests," <i>Machine Learning</i>, vol. 45, no. 1, pp. 5&ndash;32, 2001.</li>
-    <li>Group 21 Project Implementation Repository, "LLM Analysis and Prediction Codebase and Materials," <i>GitHub Repository</i>, 2026. [Online]. Available: https://github.com/najaf299/LLM-Analysis-and-Prediction</li>
+    <li>Group 21 Project Implementation Repository, "LLM Analysis and Prediction Codebase and Materials," <i>GitHub Repository</i>, 2026. [Online]. Available: <a href="https://github.com/najaf299/LLM-Analysis-and-Prediction">https://github.com/najaf299/LLM-Analysis-and-Prediction</a></li>
 </ol>
 
 </div>
